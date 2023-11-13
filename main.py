@@ -1,6 +1,7 @@
 # data.db file from Delver Lens N extracted apk.
 import os
 import sys
+import csv
 
 from PySide2 import QtWidgets, QtGui
 
@@ -13,11 +14,12 @@ from PySide2.QtWidgets import *
 
 
 class Ui_MainWindow(object):
+    valid_formats = ["Deckbox", "Moxfield"]
+
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.setFixedWidth(800)
-        MainWindow.setFixedHeight(431)
+        MainWindow.resize(800, 430)
         self.actionAbout = QAction(MainWindow)
         self.actionAbout.setObjectName(u"actionAbout")
         self.actionAbout.triggered.connect(self.showAbout)
@@ -26,55 +28,94 @@ class Ui_MainWindow(object):
         self.actionQuit.triggered.connect(lambda: sys.exit())
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
+        self.main_grid = QGridLayout(self.centralwidget)
+        self.main_grid.setHorizontalSpacing(30)
+        self.main_grid.setVerticalSpacing(30)
+        self.main_grid.setRowStretch(0, 6)
+        self.main_grid.setRowStretch(1, 1)
+
+        # Settings 
+        self.settings_grid = QGridLayout()
+        self.settings_grid.setHorizontalSpacing(10)
+        self.settings_grid.setVerticalSpacing(10)
+        self.main_grid.addItem(self.settings_grid, 0, 0, 1, 1)
         self.label = QLabel(self.centralwidget)
+        self.settings_grid.addWidget(self.label, 0, 0)
         self.label.setObjectName(u"label")
-        self.label.setGeometry(QRect(20, 20, 121, 31))
         self.label_2 = QLabel(self.centralwidget)
+        self.settings_grid.addWidget(self.label_2, 1, 0)
         self.label_2.setObjectName(u"label_2")
-        self.label_2.setGeometry(QRect(20, 60, 141, 31))
         self.label_3 = QLabel(self.centralwidget)
+        self.settings_grid.addWidget(self.label_3, 2, 0)
         self.label_3.setObjectName(u"label_3")
-        self.label_3.setGeometry(QRect(20, 100, 141, 31))
         self.lineEdit = QLineEdit(self.centralwidget)
+        self.settings_grid.addWidget(self.lineEdit, 0, 1)
         self.lineEdit.setObjectName(u"lineEdit")
-        self.lineEdit.setGeometry(QRect(160, 20, 511, 34))
+        self.lineEdit.setMinimumHeight(34)
         self.lineEdit_2 = QLineEdit(self.centralwidget)
+        self.settings_grid.addWidget(self.lineEdit_2, 1, 1)
         self.lineEdit_2.setObjectName(u"lineEdit_2")
-        self.lineEdit_2.setGeometry(QRect(160, 60, 511, 34))
+        self.lineEdit_2.setMinimumHeight(34)
         self.lineEdit_3 = QLineEdit(self.centralwidget)
+        self.settings_grid.addWidget(self.lineEdit_3, 2, 1)
         self.lineEdit_3.setObjectName(u"lineEdit_3")
-        self.lineEdit_3.setGeometry(QRect(160, 100, 511, 34))
+        self.lineEdit_3.setMinimumHeight(34)
         self.pushButton = QPushButton(self.centralwidget)
+        self.settings_grid.addWidget(self.pushButton, 0, 2)
         self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setGeometry(QRect(680, 20, 94, 34))
+        self.pushButton.setMinimumHeight(34)
         self.pushButton.clicked.connect(lambda: self.openFileNameDialog("apk"))
         self.pushButton_2 = QPushButton(self.centralwidget)
+        self.settings_grid.addWidget(self.pushButton_2, 1, 2)
         self.pushButton_2.setObjectName(u"pushButton_2")
-        self.pushButton_2.setGeometry(QRect(680, 60, 94, 34))
+        self.pushButton_2.setMinimumHeight(34)
         self.pushButton_2.clicked.connect(lambda: self.openFileNameDialog("scryfall"))
         self.pushButton_3 = QPushButton(self.centralwidget)
+        self.settings_grid.addWidget(self.pushButton_3, 2, 2)
         self.pushButton_3.setObjectName(u"pushButton_3")
-        self.pushButton_3.setGeometry(QRect(680, 100, 94, 34))
+        self.pushButton_3.setMinimumHeight(34)
         self.pushButton_3.clicked.connect(lambda: self.openFileNameDialog("dlens"))
+
+        # format selection
+        self.format_label = QLabel(self.centralwidget)
+        self.format_label.setObjectName(u"exportFormatLabel")
+        self.format_label.setMinimumHeight(34)
+        self.settings_grid.addWidget(self.format_label, 3, 1, 1, 1, Qt.AlignRight)
+        self.format_selection = QComboBox(self.centralwidget)
+        self.settings_grid.addWidget(self.format_selection, 3, 2, 1, 1)
+        for export_format in self.valid_formats:
+            self.format_selection.addItem(export_format)
+        self.format_selection.setMinimumHeight(34)
+
+        # Controls
+        self.controls_grid = QGridLayout()
+        self.controls_grid.setHorizontalSpacing(10)
+        self.controls_grid.setVerticalSpacing(10)
+        self.main_grid.addItem(self.controls_grid, 1, 0, 2, 1)
+
         self.label_4 = QLabel(self.centralwidget)
         self.label_4.setObjectName(u"label_4")
-        self.label_4.setGeometry(QRect(22, 169, 71, 31))
+        self.controls_grid.addWidget(self.label_4, 0, 0)
         self.progressBar = QProgressBar(self.centralwidget)
         self.progressBar.setObjectName(u"progressBar")
-        self.progressBar.setGeometry(QRect(110, 170, 481, 31))
+        self.progressBar.setMinimumHeight(34)
+        self.controls_grid.addWidget(self.progressBar, 0, 1)
         self.progressBar.setValue(0)
         self.pushButton_4 = QPushButton(self.centralwidget)
+        self.controls_grid.addWidget(self.pushButton_4, 0, 2)
         self.pushButton_4.setObjectName(u"pushButton_4")
-        self.pushButton_4.setGeometry(QRect(600, 170, 81, 31))
+        self.pushButton_4.setMinimumHeight(34)
         self.pushButton_4.clicked.connect(self.startexport)
         self.pushButton_5 = QPushButton(self.centralwidget)
+        self.controls_grid.addWidget(self.pushButton_5, 0, 3)
         self.pushButton_5.setObjectName(u"pushButton_5")
-        self.pushButton_5.setGeometry(QRect(693, 170, 81, 31))
+        self.pushButton_5.setMinimumHeight(34)
         self.pushButton_5.clicked.connect(lambda: self.setRunning(False))
         self.textEdit = QTextEdit(self.centralwidget)
+        self.controls_grid.addWidget(self.textEdit, 1, 0, 1, 4)
         self.textEdit.setObjectName(u"textEdit")
-        self.textEdit.setGeometry(QRect(20, 230, 761, 131))
         self.textEdit.setReadOnly(True)
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
@@ -150,20 +191,21 @@ class Ui_MainWindow(object):
         self.pushButton_4.setText(QCoreApplication.translate("MainWindow", u"Start", None))
         self.pushButton_5.setText(QCoreApplication.translate("MainWindow", u"Stop", None))
         self.menuMenu.setTitle(QCoreApplication.translate("MainWindow", u"Menu", None))
+        self.format_label.setText(QCoreApplication.translate("MainWindow", u"Export Format", None))
 
 
-    def openFileNameDialog(self, type):
+    def openFileNameDialog(self, file_type):
         fname = QFileDialog.getOpenFileName(None, "Select a file...",
                                             './', filter="All files (*)")
         if fname[0] == "":
             return
-        elif type == "apk":
+        elif file_type == "apk":
             self.log(f"APK file set to: {fname[0]}")
             self.lineEdit.setText(fname[0])
-        elif type == "scryfall":
+        elif file_type == "scryfall":
             self.log(f"Scryfall file set to: {fname[0]}")
             self.lineEdit_2.setText(fname[0])
-        elif type == "dlens":
+        elif file_type == "dlens":
             self.log(f"Dlens file set to: {fname[0]}")
             self.lineEdit_3.setText(fname[0])
 
@@ -201,6 +243,62 @@ class Ui_MainWindow(object):
             return self.scryfall_database[scryfall_id]
         except TypeError:
             return None
+
+    def get_format_header(self, export_format):
+        headers = {}
+        headers['Deckbox'] = [
+        'Count', 'Tradelist Count', 'Name', 'Edition', 'Card Number', 
+        'Condition', 'Language', 'Foil', 'Signed', 'Artist Proof', 
+        'Altered Art', 'Misprint', 'Promo', 'Textless', 'My Price'
+        ]
+        headers['Moxfield'] = [
+        'Count', 'Name', 'Edition', 'Condition', 'Language', 'Foil',
+        'Collector Number', 'Alter', 'Proxy', 'Purchase Price'
+        ]
+        return headers[export_format]
+
+    def get_formatted_fields(self, export_format, card_data):
+        fields = {}
+        fields['Deckbox'] = [
+            'quantity', 'quantity', 'name', 'set_name', 'number', 'condition', 'language', 'foil', None, None, None, None, None, None, None
+        ]
+        fields['Moxfield'] = [
+            'quantity', 'name', 'set_name', 'language', 'foil', 'number', None, None, None
+        ]
+        row = [card_data[field] if field and field in card_data.keys() else '' for field in fields[export_format]]
+        return row
+
+    def format_fixes(self, export_format, field, in_string):
+        replacements = {}
+        replacements['Deckbox'] = {}
+        # Fix names from Scryfall to Deckbox
+        replacements['Deckbox']['name'] = {key:value for key, value in [
+            ("Solitary Hunter // One of the Pack", "Solitary Hunter")
+            ]}
+        replacements['Deckbox']['condition'] = {key:value for key, value in [
+            ("Moderately Played", "Played"),
+            ("Slighty Played", "Good (Lightly Played)")
+            ]}
+        replacements['Deckbox']['set_name'] = {key:value for key, value in [
+            ("Magic 2015", "Magic 2015 Core Set"),
+            ("Magic 2014", "Magic 2014 Core Set"),
+            ("Modern Masters 2015", "Modern Masters 2015 Edition"),
+            ("Modern Masters 2017", "Modern Masters 2017 Edition"),
+            ("Time Spiral Timeshifted", ""),
+            ("Commander 2011", "Commander"),
+            ("Friday Night Magic 2009", "Friday Night Magic"),
+            ("DCI Promos", "WPN/Gateway"),
+            ]}
+        replacements['Moxfield'] = {}
+        replacements['Moxfield']['condition'] = {key:value for key, value in [
+            ("Slightly Played", "Lightly played"),
+            ("Moderately Played", "Played")
+            ]}
+        try:
+            replacement_string = replacements[export_format][field][in_string]
+        except KeyError:
+            return in_string
+        return replacement_string
     
     # save paths of the Delver DB, Scryfall JSON, and last dlens list
     # to reload on program re-open
@@ -209,6 +307,7 @@ class Ui_MainWindow(object):
         settings.setValue("apkdatabase", apkdatabase)
         settings.setValue("offlinescryfall", offlinescryfall)
         settings.setValue("dlens", dlens)
+        settings.setValue("export_format", self.format_selection.currentText())
         settings.sync()
         return
 
@@ -224,6 +323,15 @@ class Ui_MainWindow(object):
         if settings.contains("dlens"):
             dlens = settings.value("dlens")
             self.lineEdit_3.setText(dlens)
+        if settings.contains("export_format"):
+            export_format = settings.value("export_format")
+            found = False
+            for index in range(self.format_selection.count()):
+                if export_format == self.format_selection.itemText(index):
+                    found = True
+                    break
+            if found:
+                self.format_selection.setCurrentIndex(index)
         return
 
     def startexport(self):
@@ -232,6 +340,7 @@ class Ui_MainWindow(object):
         apkdatabase = self.lineEdit.text()
         offlinescryfall = self.lineEdit_2.text()
         dlens = self.lineEdit_3.text()
+        export_format = self.format_selection.currentText()
         self.save_filepaths()
 
         # Open both SQLite files
@@ -244,16 +353,15 @@ class Ui_MainWindow(object):
 
         # Set new .csv file name
         now = datetime.now()
-        newcsvname = now.strftime("%d_%m_%Y-%H_%M_%S") + ".csv"
+        newcsvname = now.strftime("%d_%m_%Y-%H_%M_%S") + "_" + export_format.lower() + ".csv"
 
         # For each card, match the id to the apk database and with scryfall_id search further data from Scryfall database.
-        with open(newcsvname, "a", encoding="utf-8") as file:
+        with open(newcsvname, "a", encoding="utf-8", newline='') as file:
             total = len(cardstoimport)
             self.scryfall_errors = 0
             self.delver_errors = 0
-            # write UTF-8 byte order marker to clue in certain programs to file encoding
-            file.write('\uFEFF')
-            file.write(f'Count,Tradelist Count,Name,Edition,Card Number,Condition,Language,Foil,Signed,Artist Proof,Altered Art,Misprint,Promo,Textless,My Price\n')
+            csv_writer = csv.writer(file)
+            csv_writer.writerow(self.get_format_header(export_format))
             for iteration, each in enumerate(cardstoimport):
                 if iteration == 0:
                     self.log(f"Preparing files, this might take a bit...")
@@ -289,39 +397,23 @@ class Ui_MainWindow(object):
                 number = carddata['collector_number']
                 language = each[10]
 
-                # Fix names from Scryfall to Deckbox
-                name = carddata['name']
-                if name == "Solitary Hunter // One of the Pack":
-                    name = "Solitary Hunter"
+                name = self.format_fixes(export_format, 'name', carddata['name'])
+                condition = self.format_fixes(export_format, 'condition', each[9])
+                set_name = self.format_fixes(export_format, 'set_name', carddata['set_name'])
 
-                # Fix condition names from Scryfall to Deckbox
-                condition = each[9]
-                if condition == "Moderately Played":
-                    condition = "Played"
-                elif condition == "Slighty Played":
-                    condition = "Good (Lightly Played)"
+                current_data = {
+                    'name': name,
+                    'condition': condition,
+                    'language': language,
+                    'number': number,
+                    'set_name': set_name,
+                    'foil': foil,
+                    'quantity': quantity
+                    }
+                out_list = self.get_formatted_fields(export_format, current_data)
 
-                # Fix set names from Scryfall to Deckbox
-                set_name = carddata['set_name']
-                if set_name == "Magic 2015":
-                    set_name = "Magic 2015 Core Set"
-                elif set_name == "Magic 2014":
-                    set_name = "Magic 2014 Core Set"
-                elif set_name == "Modern Masters 2015":
-                    set_name = "Modern Masters 2015 Edition"
-                elif set_name == "Modern Masters 2017":
-                    set_name = "Modern Masters 2017 Edition"
-                elif set_name == "Time Spiral Timeshifted":
-                    set_name = 'Time Spiral ""Timeshifted""'
-                elif set_name == "Commander 2011":
-                    set_name = "Commander"
-                elif set_name == "Friday Night Magic 2009":
-                    set_name = "Friday Night Magic"
-                elif set_name == "DCI Promos":
-                    set_name = "WPN/Gateway"
-
-                file.write(
-                    f'''"{quantity}","{quantity}","{name}","{set_name}","{number}","{condition}","{language}","{foil}","","","","","","",""\n''')
+                # self.log(str(out_list))
+                csv_writer.writerow(out_list)
 
                 self.textEdit.append(f"[ {iteration + 1} / {total} ] Imported {name} - {set_name} #{number}")
 
@@ -344,8 +436,6 @@ class Ui_MainWindow(object):
                 self.log(f"Successfully imported {total} entries into {newcsvname}", format_type=self.validFormat)
         else:
             self.log(f"Stopping early, imported {iteration - errors} out of {total} cards in {newcsvname}")
-
-
 
         QtWidgets.QApplication.processEvents()
 
