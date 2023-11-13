@@ -201,6 +201,33 @@ class Ui_MainWindow(object):
             return self.scryfall_database[scryfall_id]
         except TypeError:
             return None
+
+    def replace_fixes(self, export_format, field, in_string):
+        replacements = {}
+        replacements['deckbox'] = {}
+        # Fix names from Scryfall to Deckbox
+        replacements['deckbox']['name'] = {key:value for key, value in [
+            ("Solitary Hunter // One of the Pack", "Solitary Hunter")
+            ]}
+        replacements['deckbox']['condition'] = {key:value for key, value in [
+            ("Moderately Played", "Played"),
+            ("Slighty Played", "Good (Lightly Played)")
+            ]}
+        replacements['deckbox']['set_name'] = {key:value for key, value in [
+            ("Magic 2015", "Magic 2015 Core Set"),
+            ("Magic 2014", "Magic 2014 Core Set"),
+            ("Modern Masters 2015", "Modern Masters 2015 Edition"),
+            ("Modern Masters 2017", "Modern Masters 2017 Edition"),
+            ("Time Spiral Timeshifted", ""),
+            ("Commander 2011", "Commander"),
+            ("Friday Night Magic 2009", "Friday Night Magic"),
+            ("DCI Promos", "WPN/Gateway"),
+            ]}
+        try:
+            replacement_string = replacements[export_format][field][in_string]
+        except KeyError:
+            return in_string
+        return replacement_string
     
     # save paths of the Delver DB, Scryfall JSON, and last dlens list
     # to reload on program re-open
@@ -288,37 +315,11 @@ class Ui_MainWindow(object):
 
                 number = carddata['collector_number']
                 language = each[10]
-
-                # Fix names from Scryfall to Deckbox
-                name = carddata['name']
-                if name == "Solitary Hunter // One of the Pack":
-                    name = "Solitary Hunter"
-
-                # Fix condition names from Scryfall to Deckbox
-                condition = each[9]
-                if condition == "Moderately Played":
-                    condition = "Played"
-                elif condition == "Slighty Played":
-                    condition = "Good (Lightly Played)"
-
-                # Fix set names from Scryfall to Deckbox
-                set_name = carddata['set_name']
-                if set_name == "Magic 2015":
-                    set_name = "Magic 2015 Core Set"
-                elif set_name == "Magic 2014":
-                    set_name = "Magic 2014 Core Set"
-                elif set_name == "Modern Masters 2015":
-                    set_name = "Modern Masters 2015 Edition"
-                elif set_name == "Modern Masters 2017":
-                    set_name = "Modern Masters 2017 Edition"
-                elif set_name == "Time Spiral Timeshifted":
-                    set_name = 'Time Spiral ""Timeshifted""'
-                elif set_name == "Commander 2011":
-                    set_name = "Commander"
-                elif set_name == "Friday Night Magic 2009":
-                    set_name = "Friday Night Magic"
-                elif set_name == "DCI Promos":
-                    set_name = "WPN/Gateway"
+                
+                export_format = 'deckbox'
+                name = self.replace_fixes(export_format, 'name', carddata['name'])
+                condition = self.replace_fixes(export_format, 'condition', each[9])
+                set_name = self.replace_fixes(export_format, 'set_name', carddata['set_name'])
 
                 file.write(
                     f'''"{quantity}","{quantity}","{name}","{set_name}","{number}","{condition}","{language}","{foil}","","","","","","",""\n''')
