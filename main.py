@@ -1,6 +1,7 @@
 # data.db file from Delver Lens N extracted apk.
 import os
 import sys
+import csv
 
 from PySide2 import QtWidgets, QtGui
 
@@ -34,7 +35,7 @@ class Ui_MainWindow(object):
         self.main_grid.setRowStretch(1, 1)
 
         # Settings 
-        self.settings_grid = QGridLayout(self.centralwidget)
+        self.settings_grid = QGridLayout()
         self.settings_grid.setHorizontalSpacing(10)
         self.settings_grid.setVerticalSpacing(10)
         self.main_grid.addItem(self.settings_grid, 0, 0, 1, 1)
@@ -87,7 +88,7 @@ class Ui_MainWindow(object):
         self.format_selection.setMinimumHeight(34)
 
         # Controls
-        self.controls_grid = QGridLayout(self.centralwidget)
+        self.controls_grid = QGridLayout()
         self.controls_grid.setHorizontalSpacing(10)
         self.controls_grid.setVerticalSpacing(10)
         self.main_grid.addItem(self.controls_grid, 1, 0, 2, 1)
@@ -243,7 +244,31 @@ class Ui_MainWindow(object):
         except TypeError:
             return None
 
-    def replace_fixes(self, export_format, field, in_string):
+    def get_format_header(self, export_format):
+        headers = {}
+        headers['Deckbox'] = [
+        'Count', 'Tradelist Count', 'Name', 'Edition', 'Card Number', 
+        'Condition', 'Language', 'Foil', 'Signed', 'Artist Proof', 
+        'Altered Art', 'Misprint', 'Promo', 'Textless', 'My Price'
+        ]
+        headers['Moxfield'] = [
+        'Count', 'Name', 'Edition', 'Condition', 'Language', 'Foil',
+        'Collector Number', 'Alter', 'Proxy', 'Purchase Price'
+        ]
+        return headers[export_format]
+
+    def get_formatted_fields(self, export_format, card_data):
+        fields = {}
+        fields['Deckbox'] = [
+            'quantity', 'quantity', 'name', 'set_name', 'number', 'condition', 'language', 'foil', None, None, None, None, None, None, None
+        ]
+        fields['Moxfield'] = [
+            'quantity', 'name', 'set_name', 'language', 'foil', 'number', None, None, None
+        ]
+        row = [card_data[field] if field and field in card_data.keys() else '' for field in fields[export_format]]
+        return row
+
+    def format_fixes(self, export_format, field, in_string):
         replacements = {}
         replacements['Deckbox'] = {}
         # Fix names from Scryfall to Deckbox
@@ -263,6 +288,11 @@ class Ui_MainWindow(object):
             ("Commander 2011", "Commander"),
             ("Friday Night Magic 2009", "Friday Night Magic"),
             ("DCI Promos", "WPN/Gateway"),
+            ]}
+        replacements['Moxfield'] = {}
+        replacements['Moxfield']['condition'] = {key:value for key, value in [
+            ("Slightly Played", "Lightly played"),
+            ("Moderately Played", "Played")
             ]}
         try:
             replacement_string = replacements[export_format][field][in_string]
@@ -323,16 +353,15 @@ class Ui_MainWindow(object):
 
         # Set new .csv file name
         now = datetime.now()
-        newcsvname = now.strftime("%d_%m_%Y-%H_%M_%S") + ".csv"
+        newcsvname = now.strftime("%d_%m_%Y-%H_%M_%S") + "_" + export_format.lower() + ".csv"
 
         # For each card, match the id to the apk database and with scryfall_id search further data from Scryfall database.
-        with open(newcsvname, "a", encoding="utf-8") as file:
+        with open(newcsvname, "a", encoding="utf-8", newline='') as file:
             total = len(cardstoimport)
             self.scryfall_errors = 0
             self.delver_errors = 0
-            # write UTF-8 byte order marker to clue in certain programs to file encoding
-            file.write('\uFEFF')
-            file.write(f'Count,Tradelist Count,Name,Edition,Card Number,Condition,Language,Foil,Signed,Artist Proof,Altered Art,Misprint,Promo,Textless,My Price\n')
+            csv_writer = csv.writer(file)
+            csv_writer.writerow(self.get_format_header(export_format))
             for iteration, each in enumerate(cardstoimport):
                 if iteration == 0:
                     self.log(f"Preparing files, this might take a bit...")
@@ -367,13 +396,24 @@ class Ui_MainWindow(object):
 
                 number = carddata['collector_number']
                 language = each[10]
-                
-                name = self.replace_fixes(export_format, 'name', carddata['name'])
-                condition = self.replace_fixes(export_format, 'condition', each[9])
-                set_name = self.replace_fixes(export_format, 'set_name', carddata['set_name'])
 
-                file.write(
-                    f'''"{quantity}","{quantity}","{name}","{set_name}","{number}","{condition}","{language}","{foil}","","","","","","",""\n''')
+                name = self.format_fixes(export_format, 'name', carddata['name'])
+                condition = self.format_fixes(export_format, 'condition', each[9])
+                set_name = self.format_fixes(export_format, 'set_name', carddata['set_name'])
+
+                current_data = {
+                    'name': name,
+                    'condition': condition,
+                    'language': language,
+                    'number': number,
+                    'set_name': set_name,
+                    'foil': foil,
+                    'quantity': quantity
+                    }
+                out_list = self.get_formatted_fields(export_format, current_data)
+
+                self.log(str(out_list))
+                csv_writer.writerow(out_list)
 
                 self.textEdit.append(f"[ {iteration + 1} / {total} ] Imported {name} - {set_name} #{number}")
 
