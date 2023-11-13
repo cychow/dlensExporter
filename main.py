@@ -152,18 +152,18 @@ class Ui_MainWindow(object):
         self.menuMenu.setTitle(QCoreApplication.translate("MainWindow", u"Menu", None))
 
 
-    def openFileNameDialog(self, type):
+    def openFileNameDialog(self, file_type):
         fname = QFileDialog.getOpenFileName(None, "Select a file...",
                                             './', filter="All files (*)")
         if fname[0] == "":
             return
-        elif type == "apk":
+        elif file_type == "apk":
             self.log(f"APK file set to: {fname[0]}")
             self.lineEdit.setText(fname[0])
-        elif type == "scryfall":
+        elif file_type == "scryfall":
             self.log(f"Scryfall file set to: {fname[0]}")
             self.lineEdit_2.setText(fname[0])
-        elif type == "dlens":
+        elif file_type == "dlens":
             self.log(f"Dlens file set to: {fname[0]}")
             self.lineEdit_3.setText(fname[0])
 
