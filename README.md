@@ -13,7 +13,7 @@ You need three files:
 * `.json` file with offline card data from Scryfall, downloadable from https://scryfall.com/docs/api/bulk-data; Default Cards should suffice for most cases.
 * `.dlens` file from Delver Lens N through its backup or export deck option.
 
-Clone the repository and install necessary dependecies. Under releases I have included pre-compiled binaries but due to included dependencies they're quite large.
+Clone the repository and install necessary dependecies, e.g.: with `pip install -r requirements.txt` or equivalent. Under releases I have included pre-compiled binaries but due to included dependencies they're quite large.
     
 ## Notes
 
