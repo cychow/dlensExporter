@@ -412,7 +412,7 @@ class Ui_MainWindow(object):
                     }
                 out_list = self.get_formatted_fields(export_format, current_data)
 
-                self.log(str(out_list))
+                # self.log(str(out_list))
                 csv_writer.writerow(out_list)
 
                 self.textEdit.append(f"[ {iteration + 1} / {total} ] Imported {name} - {set_name} #{number}")
