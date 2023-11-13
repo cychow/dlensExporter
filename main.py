@@ -13,6 +13,8 @@ from PySide2.QtWidgets import *
 
 
 class Ui_MainWindow(object):
+    valid_formats = ["Deckbox", "Moxfield"]
+
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
@@ -72,6 +74,17 @@ class Ui_MainWindow(object):
         self.pushButton_3.setObjectName(u"pushButton_3")
         self.pushButton_3.setMinimumHeight(34)
         self.pushButton_3.clicked.connect(lambda: self.openFileNameDialog("dlens"))
+
+        # format selection
+        self.format_label = QLabel(self.centralwidget)
+        self.format_label.setObjectName(u"exportFormatLabel")
+        self.format_label.setMinimumHeight(34)
+        self.settings_grid.addWidget(self.format_label, 3, 1, 1, 1, Qt.AlignRight)
+        self.format_selection = QComboBox(self.centralwidget)
+        self.settings_grid.addWidget(self.format_selection, 3, 2, 1, 1)
+        for export_format in self.valid_formats:
+            self.format_selection.addItem(export_format)
+        self.format_selection.setMinimumHeight(34)
 
         # Controls
         self.controls_grid = QGridLayout(self.centralwidget)
@@ -177,6 +190,7 @@ class Ui_MainWindow(object):
         self.pushButton_4.setText(QCoreApplication.translate("MainWindow", u"Start", None))
         self.pushButton_5.setText(QCoreApplication.translate("MainWindow", u"Stop", None))
         self.menuMenu.setTitle(QCoreApplication.translate("MainWindow", u"Menu", None))
+        self.format_label.setText(QCoreApplication.translate("MainWindow", u"Export Format", None))
 
 
     def openFileNameDialog(self, file_type):
@@ -231,16 +245,16 @@ class Ui_MainWindow(object):
 
     def replace_fixes(self, export_format, field, in_string):
         replacements = {}
-        replacements['deckbox'] = {}
+        replacements['Deckbox'] = {}
         # Fix names from Scryfall to Deckbox
-        replacements['deckbox']['name'] = {key:value for key, value in [
+        replacements['Deckbox']['name'] = {key:value for key, value in [
             ("Solitary Hunter // One of the Pack", "Solitary Hunter")
             ]}
-        replacements['deckbox']['condition'] = {key:value for key, value in [
+        replacements['Deckbox']['condition'] = {key:value for key, value in [
             ("Moderately Played", "Played"),
             ("Slighty Played", "Good (Lightly Played)")
             ]}
-        replacements['deckbox']['set_name'] = {key:value for key, value in [
+        replacements['Deckbox']['set_name'] = {key:value for key, value in [
             ("Magic 2015", "Magic 2015 Core Set"),
             ("Magic 2014", "Magic 2014 Core Set"),
             ("Modern Masters 2015", "Modern Masters 2015 Edition"),
@@ -263,6 +277,7 @@ class Ui_MainWindow(object):
         settings.setValue("apkdatabase", apkdatabase)
         settings.setValue("offlinescryfall", offlinescryfall)
         settings.setValue("dlens", dlens)
+        settings.setValue("export_format", self.format_selection.currentText())
         settings.sync()
         return
 
@@ -278,6 +293,15 @@ class Ui_MainWindow(object):
         if settings.contains("dlens"):
             dlens = settings.value("dlens")
             self.lineEdit_3.setText(dlens)
+        if settings.contains("export_format"):
+            export_format = settings.value("export_format")
+            found = False
+            for index in range(self.format_selection.count()):
+                if export_format == self.format_selection.itemText(index):
+                    found = True
+                    break
+            if found:
+                self.format_selection.setCurrentIndex(index)
         return
 
     def startexport(self):
@@ -286,6 +310,7 @@ class Ui_MainWindow(object):
         apkdatabase = self.lineEdit.text()
         offlinescryfall = self.lineEdit_2.text()
         dlens = self.lineEdit_3.text()
+        export_format = self.format_selection.currentText()
         self.save_filepaths()
 
         # Open both SQLite files
@@ -343,7 +368,6 @@ class Ui_MainWindow(object):
                 number = carddata['collector_number']
                 language = each[10]
                 
-                export_format = 'deckbox'
                 name = self.replace_fixes(export_format, 'name', carddata['name'])
                 condition = self.replace_fixes(export_format, 'condition', each[9])
                 set_name = self.replace_fixes(export_format, 'set_name', carddata['set_name'])
